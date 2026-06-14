@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar o meu currículo — Zivug</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-inner">
+      <div class="marca">ZIVUG</div>
+      <div class="topo-modelo" id="topo-modelo"></div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Coluna do formulário -->
+    <section class="painel-form">
+      <div class="intro">
+        <h1>Vamos montar o teu currículo</h1>
+        <p>Preenche os campos abaixo. À direita (ou em baixo, no telemóvel) vês o resultado a atualizar em tempo real. No fim, descarregas o PDF.</p>
+      </div>
+      <form id="form" autocomplete="off"><!-- gerado dinamicamente --></form>
+
+      <div class="acoes">
+        <button type="button" id="btn-pdf" class="btn btn-primario">Descarregar PDF</button>
+        <span id="estado-envio" class="estado-envio"></span>
+      </div>
+      <p class="nota-rodape">Ao descarregar, os teus dados são enviados de forma segura para a Zivug para revisão final.</p>
+    </section>
+
+    <!-- Coluna do preview -->
+    <section class="painel-preview">
+      <div class="preview-rotulo">Pré-visualização</div>
+      <div class="preview-scroll">
+        <div class="preview-scale" id="preview-scale">
+          <div class="cv-doc" id="cv-doc"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <button type="button" id="btn-preview-mobile" class="btn-preview-mobile">Ver pré-visualização</button>
+
+  <!-- Bibliotecas -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+
+  <!-- App -->
+  <script src="config.js"></script>
+  <script src="modelos.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
