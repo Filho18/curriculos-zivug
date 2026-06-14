@@ -299,30 +299,46 @@ window.cvLinhas = function (s) {
   }
 
   function gerarPDF() {
-    // Renderiza num clone em tamanho real (sem escala) fora do ecrã
+    // Renderiza um clone em tamanho real (sem escala). É posicionado em (0,0)
+    // mas atrás do conteúdo (z-index negativo) — NÃO fora do ecrã com left
+    // negativo, senão o html2canvas captura coordenadas negativas e sai branco.
     var holder = document.createElement('div');
     holder.style.position = 'fixed';
-    holder.style.left = '-10000px';
+    holder.style.left = '0';
     holder.style.top = '0';
+    holder.style.zIndex = '-1';
+    holder.style.opacity = '0';        // invisível ao utilizador, mas renderizado
+    holder.style.pointerEvents = 'none';
     var doc = document.createElement('div');
     doc.className = 'cv-doc';
     doc.style.transform = 'none';
+    doc.style.background = '#ffffff';
     doc.innerHTML = modelo.render(dados);
     holder.appendChild(doc);
     document.body.appendChild(holder);
+
+    var larguraPx = doc.offsetWidth || 794;
 
     var opt = {
       margin: 0,
       filename: nomeFicheiro(),
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: larguraPx,
+        width: larguraPx
+      },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['css', 'legacy'] }
     };
     return html2pdf().set(opt).from(doc).save().then(function () {
-      document.body.removeChild(holder);
+      if (holder.parentNode) document.body.removeChild(holder);
     }).catch(function (e) {
-      document.body.removeChild(holder);
+      if (holder.parentNode) document.body.removeChild(holder);
       throw e;
     });
   }
