@@ -70,10 +70,10 @@ window.cvLinhas = function (s) {
     return campo.ajuda ? '<div class="ajuda">' + window.cvEsc(campo.ajuda) + '</div>' : '';
   }
 
-  function construirCampoSimples(campo, valor, onInput) {
+  function construirCampoSimples(campo, valor, onInput, semLabel) {
     var div = document.createElement('div');
     div.className = 'campo';
-    div.innerHTML = labelHtml(campo);
+    div.innerHTML = semLabel ? '' : labelHtml(campo);
     var input;
     if (campo.tipo === 'textarea') {
       input = document.createElement('textarea');
@@ -184,28 +184,47 @@ window.cvLinhas = function (s) {
     return bloco;
   }
 
-  // Agrupa campos simples soltos do topo num só bloco "Dados principais"
-  var blocoPrincipal = null;
+  // Layout: os campos simples ANTES do primeiro grupo/lista agrupam-se num
+  // bloco "Dados principais" (foto, nome, cargo). Depois disso, cada campo
+  // simples solto (ex: resumo, competências) ganha o seu próprio bloco com
+  // o seu próprio título — evita "Dados principais" repetido.
+  var introBloco = null;   // bloco de abertura (acumula foto/nome/cargo)
+  var introTerminou = false;
+
+  function novoBloco(titulo) {
+    var b = document.createElement('div');
+    b.className = 'bloco';
+    b.innerHTML = '<div class="bloco-titulo">' + window.cvEsc(titulo) + '</div>';
+    form.appendChild(b);
+    return b;
+  }
+
   modelo.schema.forEach(function (campo) {
     if (campo.tipo === 'grupo') {
       form.appendChild(construirGrupo(campo));
-      blocoPrincipal = null;
+      introTerminou = true;
     } else if (campo.tipo === 'lista') {
       form.appendChild(construirLista(campo));
-      blocoPrincipal = null;
-    } else {
-      if (!blocoPrincipal) {
-        blocoPrincipal = document.createElement('div');
-        blocoPrincipal.className = 'bloco';
-        blocoPrincipal.innerHTML = '<div class="bloco-titulo">Dados principais</div>';
-        form.appendChild(blocoPrincipal);
-      }
+      introTerminou = true;
+    } else if (!introTerminou) {
+      // campo simples de abertura
+      if (!introBloco) introBloco = novoBloco('Dados principais');
       if (campo.tipo === 'imagem') {
-        blocoPrincipal.appendChild(construirFoto(campo));
+        introBloco.appendChild(construirFoto(campo));
       } else {
-        blocoPrincipal.appendChild(construirCampoSimples(campo, dados[campo.key], function (v) {
+        introBloco.appendChild(construirCampoSimples(campo, dados[campo.key], function (v) {
           dados[campo.key] = v; atualizarPreview();
         }));
+      }
+    } else {
+      // campo simples solto depois de um grupo/lista → bloco próprio
+      var bloco = novoBloco(campo.label);
+      if (campo.tipo === 'imagem') {
+        bloco.appendChild(construirFoto(campo));
+      } else {
+        bloco.appendChild(construirCampoSimples(campo, dados[campo.key], function (v) {
+          dados[campo.key] = v; atualizarPreview();
+        }, true /* semLabel: o título do bloco já mostra o nome */));
       }
     }
   });
