@@ -298,16 +298,18 @@ window.cvLinhas = function (s) {
     });
   }
 
+  // Gera o PDF de forma determinística: captura o CV com html2canvas e monta
+  // as páginas A4 à mão com jsPDF. Evita as quirks de escala do html2pdf.
   function gerarPDF() {
-    // Renderiza um clone em tamanho real (sem escala). É posicionado em (0,0)
-    // mas atrás do conteúdo (z-index negativo) — NÃO fora do ecrã com left
-    // negativo, senão o html2canvas captura coordenadas negativas e sai branco.
+    // Clone em tamanho real, em (0,0) e invisível (opacity 0) — NÃO usar
+    // left negativo, senão o html2canvas captura coordenadas negativas e
+    // sai branco.
     var holder = document.createElement('div');
     holder.style.position = 'fixed';
     holder.style.left = '0';
     holder.style.top = '0';
     holder.style.zIndex = '-1';
-    holder.style.opacity = '0';        // invisível ao utilizador, mas renderizado
+    holder.style.opacity = '0';
     holder.style.pointerEvents = 'none';
     var doc = document.createElement('div');
     doc.className = 'cv-doc';
@@ -317,30 +319,42 @@ window.cvLinhas = function (s) {
     holder.appendChild(doc);
     document.body.appendChild(holder);
 
-    var larguraPx = doc.offsetWidth || 794;
+    function limpar() { if (holder.parentNode) document.body.removeChild(holder); }
 
-    var opt = {
-      margin: 0,
-      filename: nomeFicheiro(),
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: larguraPx,
-        width: larguraPx
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'] }
-    };
-    return html2pdf().set(opt).from(doc).save().then(function () {
-      if (holder.parentNode) document.body.removeChild(holder);
-    }).catch(function (e) {
-      if (holder.parentNode) document.body.removeChild(holder);
-      throw e;
-    });
+    return html2canvas(doc, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
+      .then(function (canvas) {
+        var jsPDF = window.jspdf.jsPDF;
+        var pdf = new jsPDF('p', 'mm', 'a4');
+        var pageWmm = 210, pageHmm = 297;
+        var pxPorMm = canvas.width / pageWmm;          // px do canvas por mm
+        var pageHpx = Math.floor(pageHmm * pxPorMm);   // px que cabem numa página
+        var totalHpx = canvas.height;
+
+        var y = 0, pagina = 0;
+        // do-while garante pelo menos 1 página; a tolerância de 3px evita uma
+        // página-fantasma criada só por arredondamento sub-pixel.
+        do {
+          var fatiaHpx = Math.min(pageHpx, totalHpx - y);
+          var fatia = document.createElement('canvas');
+          fatia.width = canvas.width;
+          fatia.height = fatiaHpx;
+          var fctx = fatia.getContext('2d');
+          fctx.fillStyle = '#ffffff';
+          fctx.fillRect(0, 0, fatia.width, fatia.height);
+          fctx.drawImage(canvas, 0, y, canvas.width, fatiaHpx, 0, 0, canvas.width, fatiaHpx);
+
+          var img = fatia.toDataURL('image/jpeg', 0.98);
+          var fatiaHmm = fatiaHpx / pxPorMm;
+          if (pagina > 0) pdf.addPage();
+          pdf.addImage(img, 'JPEG', 0, 0, pageWmm, fatiaHmm);
+          y += fatiaHpx;
+          pagina++;
+        } while (totalHpx - y > 3);
+
+        pdf.save(nomeFicheiro());
+        limpar();
+      })
+      .catch(function (e) { limpar(); throw e; });
   }
 
   btnPdf.addEventListener('click', function () {
