@@ -31,7 +31,6 @@ window.MODELOS['profissional-pb'] = {
   schema: [
     { key: 'foto',   label: 'Foto de perfil', tipo: 'imagem', ajuda: 'Foto nítida, de frente. Será recortada em círculo.' },
     { key: 'nome',   label: 'Nome', tipo: 'texto', obrigatorio: true, ajuda: 'Aparece em destaque no topo. Pode ser só o primeiro nome ou nome completo.' },
-    { key: 'titulo', label: 'Cargo / título profissional', tipo: 'texto', obrigatorio: true, ajuda: 'Ex: Creative Director, Gestor de Marketing, Engenheiro Civil.' },
 
     { key: 'contacto', label: 'Contacto', tipo: 'grupo', campos: [
       { key: 'telefone', label: 'Telefone', tipo: 'texto' },
@@ -114,7 +113,7 @@ window.MODELOS['profissional-pb'] = {
       '<div class="cv-head">' + foto +
         '<div class="cv-head-text">' +
           '<h1 class="cv-name">' + esc(d.nome) + '</h1>' +
-          '<div class="cv-role">' + esc(d.titulo) + '</div>' +
+          (d.titulo ? '<div class="cv-role">' + esc(d.titulo) + '</div>' : '') +
         '</div>' +
       '</div>';
 
