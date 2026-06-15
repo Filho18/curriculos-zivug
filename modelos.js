@@ -66,12 +66,15 @@ window.MODELOS['profissional-pb'] = {
 .cv-photo-ph{display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-size:12px;color:#888;text-align:center;line-height:1.3}
 .cv-name{font-family:'Montserrat',sans-serif;font-weight:800;font-size:52px;letter-spacing:5px;line-height:1;text-transform:uppercase;margin:0}
 .cv-role{font-family:'Montserrat',sans-serif;font-weight:600;font-size:15px;letter-spacing:7px;text-transform:uppercase;margin-top:12px;color:#333}
-.cv-body{display:flex}
-.cv-left{width:36%;padding:30px 26px 40px 40px;border-right:1px solid #e4e4e4}
-.cv-right{width:64%;padding:30px 40px 40px 30px}
+.cv-body{display:grid;grid-template-columns:36% 64%}
+.cv-cell{padding-top:28px;padding-bottom:30px}
+.cv-col1{grid-column:1;border-right:1px solid #e4e4e4;padding-left:40px;padding-right:26px}
+.cv-col2{grid-column:2;padding-left:30px;padding-right:40px}
+.cv-row1{grid-row:1}
+.cv-row2{grid-row:2}
 .cv-sec{margin-bottom:26px}
 .cv-sec:last-child{margin-bottom:0}
-.cv-sec-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:20px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 14px}
+.cv-sec-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:26px;letter-spacing:1px;text-transform:uppercase;margin:0 0 16px}
 .cv-contact-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;font-size:13px;word-break:break-word}
 .cv-ico{width:24px;height:24px;border-radius:50%;background:#1d1d1d;display:flex;align-items:center;justify-content:center;flex:0 0 24px}
 .cv-ico svg{width:12px;height:12px;fill:#fff}
@@ -152,10 +155,15 @@ window.MODELOS['profissional-pb'] = {
     }).join('');
     var experiencia = exp ? '<div class="cv-sec"><h2 class="cv-sec-title">Experiência</h2>' + exp + '</div>' : '';
 
+    // Grelha 2x2: títulos alinhados entre colunas como no original.
+    //   linha 1: Contacto | Resumo
+    //   linha 2: Educação + Competências | Experiência
     return head +
       '<div class="cv-body">' +
-        '<div class="cv-left">' + contacto + educacao + competencias + '</div>' +
-        '<div class="cv-right">' + resumo + experiencia + '</div>' +
+        '<div class="cv-cell cv-col1 cv-row1">' + contacto + '</div>' +
+        '<div class="cv-cell cv-col2 cv-row1">' + resumo + '</div>' +
+        '<div class="cv-cell cv-col1 cv-row2">' + educacao + competencias + '</div>' +
+        '<div class="cv-cell cv-col2 cv-row2">' + experiencia + '</div>' +
       '</div>';
   }
 };
