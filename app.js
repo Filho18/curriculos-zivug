@@ -88,6 +88,37 @@ window.cvLinhas = function (s) {
     return div;
   }
 
+  // Lê o ficheiro, redimensiona para no máximo `maxLado`px e devolve um
+  // dataURL JPEG (mais leve que o PNG original) via callback.
+  function redimensionarImagem(file, maxLado, cb) {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var origem = e.target.result;
+      var img = new Image();
+      img.onload = function () {
+        var w = img.width, h = img.height;
+        var escala = Math.min(1, maxLado / Math.max(w, h));
+        var nw = Math.max(1, Math.round(w * escala));
+        var nh = Math.max(1, Math.round(h * escala));
+        var canvas = document.createElement('canvas');
+        canvas.width = nw;
+        canvas.height = nh;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, nw, nh);
+        ctx.drawImage(img, 0, 0, nw, nh);
+        try {
+          cb(canvas.toDataURL('image/jpeg', 0.88));
+        } catch (err) {
+          cb(origem); // fallback: usa a imagem original
+        }
+      };
+      img.onerror = function () { cb(origem); };
+      img.src = origem;
+    };
+    reader.readAsDataURL(file);
+  }
+
   function construirFoto(campo) {
     var div = document.createElement('div');
     div.className = 'campo';
